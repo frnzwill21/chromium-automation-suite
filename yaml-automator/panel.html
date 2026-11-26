@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAML Automator Studio</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0f172a; color: #e2e8f0; margin: 0; padding: 12px; display: flex; flex-direction: column; height: 100vh; }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        h2 { font-size: 16px; margin: 0; color: #34d399; }
+        .badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; background: rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
+        .tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; background: #1e293b; padding: 4px; border-radius: 8px; margin-bottom: 10px; }
+        .tab-btn { background: transparent; color: #94a3b8; border: none; padding: 7px 6px; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; }
+        .tab-btn.active { background: #334155; color: #f8fafc; }
+        .tab-panel { display: none; flex-direction: column; flex-grow: 1; min-height: 0; }
+        .tab-panel.active { display: flex; }
+        .toolbar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+        .btn { border: none; border-radius: 6px; padding: 8px 10px; font-size: 12px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .btn-run { background: #10b981; color: #052e16; flex: 1; }
+        .btn-stop { background: #ef4444; color: #ffffff; }
+        .btn-rec { background: #f59e0b; color: #1c1917; }
+        .btn-rec.recording { background: #ef4444; color: #ffffff; }
+        .btn-sec { background: #334155; color: #e2e8f0; }
+        select, input[type="number"], input[type="text"] { background: #1e293b; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; padding: 6px 8px; font-size: 12px; }
+        textarea.editor { flex-grow: 1; width: 100%; background: #0b1120; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; padding: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.45; resize: none; outline: none; margin-bottom: 8px; }
+        textarea.editor:focus { border-color: #34d399; }
+        .validation-bar { font-size: 11px; padding: 5px 8px; border-radius: 6px; margin-bottom: 8px; background: #1e293b; color: #94a3b8; }
+        .validation-bar.valid { color: #34d399; background: rgba(16, 185, 129, 0.12); }
+        .validation-bar.invalid { color: #f87171; background: rgba(239, 68, 68, 0.12); }
+        .options-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+        .progress-wrap { height: 6px; background: #1e293b; border-radius: 999px; overflow: hidden; margin-bottom: 8px; }
+        .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #10b981, #38bdf8); transition: width 0.2s ease; }
+        .log-area { flex-grow: 1; background: #0b1120; border: 1px solid #334155; border-radius: 6px; padding: 8px; overflow-y: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; line-height: 1.5; }
+        .log-entry { margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px solid #1e293b; }
+        .log-info { color: #38bdf8; }
+        .log-success { color: #34d399; }
+        .log-error { color: #f87171; }
+        .saved-list { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .saved-item { display: flex; align-items: center; justify-content: space-between; background: #1e293b; padding: 8px 10px; border-radius: 6px; font-size: 12px; }
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+    <div class="header"><h2>YAML Automator Studio</h2><span class="badge">v2.0</span></div>
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="editor">Editor &amp; Run</button>
+        <button class="tab-btn" data-tab="saved">Saved</button>
+        <button class="tab-btn" data-tab="logs">Logs</button>
+    </div>
+    <div class="tab-panel active" id="tab-editor">
+        <div class="toolbar">
+            <button id="uploadBtn" class="btn btn-sec">Upload .yaml</button>
+            <input type="file" id="fileInput" accept=".yaml,.yml">
+            <select id="templateSelect" style="flex:1;">
+                <option value="">Load Template...</option>
+                <option value="search">Example: Web Search &amp; Assert</option>
+                <option value="scrape">Example: Extract Text &amp; Screenshot</option>
+            </select>
+            <button id="downloadYamlBtn" class="btn btn-sec">Export</button>
+        </div>
+        <textarea id="yamlEditor" class="editor" spellcheck="false" placeholder="Paste or upload BlazeMeter/Taurus YAML here..."></textarea>
+        <div id="validationBar" class="validation-bar">Paste YAML, upload a file, or click Record.</div>
+        <div class="options-row">
+            <label style="cursor:pointer;"><input type="checkbox" id="loopCheck"> Loop Mode</label>
+            <label>Delay (ms): <input type="number" id="stepDelay" value="300" min="0" max="10000" step="100" style="width:68px;"></label>
+        </div>
+        <div class="progress-wrap"><div id="progressBar" class="progress-bar"></div></div>
+        <div class="toolbar">
+            <button id="runBtn" class="btn btn-run" disabled>Run</button>
+            <button id="stopBtn" class="btn btn-stop" disabled>Stop</button>
+            <button id="recBtn" class="btn btn-rec">Record</button>
+        </div>
+    </div>
+    <div class="tab-panel" id="tab-saved">
+        <div class="toolbar">
+            <input type="text" id="scriptNameInput" placeholder="Workflow name..." style="flex:1;">
+            <button id="saveScriptBtn" class="btn btn-run" style="flex:0;">Save Current</button>
+        </div>
+        <div id="savedList" class="saved-list"></div>
+    </div>
+    <div class="tab-panel" id="tab-logs">
+        <div class="toolbar">
+            <button id="clearLogsBtn" class="btn btn-sec">Clear Logs</button>
+            <button id="exportLogsBtn" class="btn btn-sec">Export Logs</button>
+        </div>
+        <div class="log-area" id="logArea"><div class="log-entry log-info">YAML Automator Studio v2.0 ready.</div></div>
+    </div>
+    <script src="js-yaml.min.js"></script>
+    <script src="panel.js"></script>
+</body>
+</html>
