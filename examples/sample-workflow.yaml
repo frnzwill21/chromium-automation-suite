@@ -1,0 +1,26 @@
+scenarios:
+  demo_workflow:
+    requests:
+      - label: Full Feature Demo
+        actions:
+          - resizeWindow: "1280,800"
+          - go: https://example.com
+          - assertTitle: Example Domain
+          - waitFor:
+              locators:
+                - CSS: h1
+              value: 5s
+          - assertVisible:
+              locators:
+                - CSS: h1
+          - assertText:
+              locators:
+                - CSS: h1
+              param: Example Domain
+          - extractText:
+              locators:
+                - CSS: p
+              param: intro_paragraph
+          - scrollTo: bottom
+          - pauseFor: 1s
+          - screenshot: example-demo

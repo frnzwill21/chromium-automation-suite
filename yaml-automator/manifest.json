@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "YAML Automator Studio",
+  "version": "2.0.0",
+  "description": "Visual recorder, live YAML editor, and full BlazeMeter/Taurus UI automation engine with Shadow DOM piercing, assertions, screenshots, and saved workflows.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "tabs",
+    "sidePanel",
+    "storage",
+    "downloads"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "action": {
+    "default_title": "Open YAML Automator Studio"
+  }
+}

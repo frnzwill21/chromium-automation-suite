@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "HTML & Content Extractor Pro",
+  "version": "2.0.0",
+  "description": "Extract full DOM (Shadow DOM & inputs), sanitized HTML (DOMPurify), clean Markdown (Mozilla Readability + Turndown), page metadata JSON, and CSS/XPath selectors.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "downloads",
+    "clipboardWrite"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
